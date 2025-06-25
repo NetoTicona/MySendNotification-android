@@ -275,9 +275,12 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void registrarDispositivo(){
 
-        FirebaseMessaging.getInstance().subscribeToTopic("todos")
+    private void registrarDispositivo() {
+
+
+
+        /*FirebaseMessaging.getInstance().subscribeToTopic("todos")
                 .addOnCompleteListener(response -> {
                     if(response.isSuccessful()) {
                         runOnUiThread(() -> {
@@ -292,61 +295,61 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, "❌ Error al suscribirse al topic",
                                     Toast.LENGTH_SHORT).show();
                         });
-
                     }
+                }); */
 
 
-                });
 
 
-        /*FirebaseMessaging.getInstance().getToken()
+        FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(new OnCompleteListener<String>() {
                     @Override
                     public void onComplete(@NonNull Task<String> task) {
                         if (!task.isSuccessful()) {
                             Log.w(ContentValues.TAG, "Fetching FCM registration token failed", task.getException());
+                            tvStatus.setText("Fallo al obtener token FCM");
                             return;
                         }
 
                         // Get new FCM registration token
                         String token = task.getResult();
-                        String tokenGuardado = getSharedPreferences( "SP_FILE" , 0 ).getString("IDDEVICE" , null);
-                        if( token != null ){
+                        String tokenGuardado = getSharedPreferences("SP_FILE", 0).getString("TOKEN", null);
 
-                            if( tokenGuardado == null || !token.equals(tokenGuardado) ){
-                                //Ya noes necesario regitrar lis iddevices
-                                //DeviceManager.postRegistrarDispositivoEnServidor( token, MainActivity.this );
+                        if (token != null) {
+                            if (tokenGuardado == null || !token.equals(tokenGuardado)) {
+                                // Register device with callback
+                                DeviceManager.postRegistrarDispositivoEnServidor(token, MainActivity.this,
+                                        new DeviceManager.RegistrationCallback() {
+                                            @Override
+                                            public void onSuccess(String message, Integer id, String token) {
+                                                runOnUiThread(() -> {
+                                                    tvStatus.setText("✅ Dispositivo registrado exitosamente");
+                                                    Toast.makeText(MainActivity.this, "✅ Success: " + message,
+                                                            Toast.LENGTH_SHORT).show();
+
+                                                    // Now check for notification permissions
+                                                    checkAndRequestNotificationPermission();
+                                                });
+                                            }
+
+                                            @Override
+                                            public void onError(String error) {
+                                                runOnUiThread(() -> {
+                                                    tvStatus.setText("❌ Error al registrar dispositivo");
+                                                    Toast.makeText(MainActivity.this, "❌ " + error,
+                                                            Toast.LENGTH_SHORT).show();
+                                                });
+                                            }
+                                        });
+                            } else {
+                                // Token hasn't changed, device already registered
+                                tvStatus.setText("✅ Dispositivo ya registrado");
+                                checkAndRequestNotificationPermission();
                             }
-
-                            FirebaseMessaging.getInstance().subscribeToTopic("todos")
-                                    .addOnCompleteListener(response -> {
-                                        if(response.isSuccessful()) {
-                                            runOnUiThread(() -> {
-
-                                                tvStatus.setText("Permita notificaciones");
-                                                checkAndRequestNotificationPermission();
-                                            });
-                                        } else {
-
-                                            runOnUiThread(() -> {
-                                                tvStatus.setText("Fallo al conectar a FCM");
-                                                Toast.makeText(MainActivity.this, "❌ Error al suscribirse al topic",
-                                                        Toast.LENGTH_SHORT).show();
-                                            });
-
-                                        }
-
-
-                                    });
-
                         }
-
-                        //Toast.makeText( MainActivity.this , token , Toast.LENGTH_SHORT ).show();
                     }
-                });*/
+                });
     }
-
-
 
 
 
