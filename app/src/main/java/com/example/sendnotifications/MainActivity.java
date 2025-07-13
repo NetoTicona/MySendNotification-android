@@ -25,6 +25,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.example.sendnotifications.domain.repository.AuthRepository;
+import com.example.sendnotifications.domain.repository.AuthRepositoryImpl;
+import com.example.sendnotifications.presentation.login.LoginActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -34,6 +37,7 @@ import java.util.Collections;
 import android.Manifest;
 
 public class MainActivity extends AppCompatActivity {
+
     private LinearLayout[] elements;
     private Handler handler = new Handler();
     private ArrayList<Integer> remainingElements = new ArrayList<>();
@@ -44,6 +48,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AuthRepository authRepository = new AuthRepositoryImpl(this);
+        if (!authRepository.isUserLoggedIn()) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish(); // Evita que el usuario vuelva atrás con el botón
+            return; // No ejecuta el resto del código
+        }
+
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -306,9 +317,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<String> task) {
                         if (!task.isSuccessful()) {
+
                             Log.w(ContentValues.TAG, "Fetching FCM registration token failed", task.getException());
                             tvStatus.setText("Fallo al obtener token FCM");
                             return;
+
                         }
 
                         // Get new FCM registration token
@@ -323,6 +336,7 @@ public class MainActivity extends AppCompatActivity {
                                             @Override
                                             public void onSuccess(String message, Integer id, String token) {
                                                 runOnUiThread(() -> {
+
                                                     tvStatus.setText("✅ Dispositivo registrado exitosamente");
                                                     Toast.makeText(MainActivity.this, "✅ Success: " + message,
                                                             Toast.LENGTH_SHORT).show();
